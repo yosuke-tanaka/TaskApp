@@ -1,5 +1,7 @@
 package jp.techacademy.tanaka.yousuke.taskapp;
 
+import android.app.AlarmManager;
+import android.app.PendingIntent;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.os.Bundle;
@@ -98,6 +100,22 @@ public class MainActivity extends AppCompatActivity {
                         mRealm.beginTransaction();
                         results.clear();
                         mRealm.commitTransaction();
+
+                        Intent resultIntent = new Intent(getApplicationContext(), TaskAlarmReceiver.class);
+                        PendingIntent resultPendingIntent = PendingIntent.getBroadcast(
+                                MainActivity.this,
+                                task.getId(),
+                                resultIntent,
+                                PendingIntent.FLAG_UPDATE_CURRENT
+                        );
+
+                        //タスクを削除したときに、ここで設定したアラームを解除する必要があります。
+                        // MainActivityクラスのonCreateメソッドで設定したOnItemLongClickListenerの中で
+                        // データベースからタスクを削除するタイミングでアラームを解除します。
+                        // セットした時と同じIntent、PendingIntentを作成し、AlarmManagerクラスのcancelメソッドでキャンセルします。
+
+                        AlarmManager alarmManager = (AlarmManager) getSystemService(ALARM_SERVICE);
+                        alarmManager.cancel(resultPendingIntent);
 
                         reloadListView();
                     }
