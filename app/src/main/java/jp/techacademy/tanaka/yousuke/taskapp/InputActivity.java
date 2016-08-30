@@ -26,7 +26,7 @@ public class InputActivity extends AppCompatActivity {
     private int mYear, mMonth, mDay, mHour, mMinute;
     //日付を設定するButtonと時間を設定するButton、タイトルを入力するEditText、内容を入力するEditTextの保持する変数
     private Button mDateButton, mTimeButton;
-    private EditText mTitleEdit, mContentEdit;
+    private EditText mTitleEdit, mContentEdit, mCategoryEdit;
     // Taskクラスのオブジェクト
     private Task mTask;
 
@@ -102,6 +102,7 @@ public class InputActivity extends AppCompatActivity {
         findViewById(R.id.done_button).setOnClickListener(mOnDoneClickListener);
         mTitleEdit = (EditText)findViewById(R.id.title_edit_text);
         mContentEdit = (EditText)findViewById(R.id.content_edit_text);
+        mCategoryEdit = (EditText)findViewById(R.id.category_edit_text);
 
         Intent intent = getIntent();
         mTask = (Task) intent.getSerializableExtra(MainActivity.EXTRA_TASK);
@@ -125,6 +126,7 @@ public class InputActivity extends AppCompatActivity {
             // 更新の場合
             mTitleEdit.setText(mTask.getTitle());
             mContentEdit.setText(mTask.getContents());
+            mCategoryEdit.setText(mTask.getCategory());
 
             Calendar calendar = Calendar.getInstance();
             calendar.setTime(mTask.getDate());
@@ -211,9 +213,11 @@ public class InputActivity extends AppCompatActivity {
 
         String title = mTitleEdit.getText().toString();
         String content = mContentEdit.getText().toString();
+        String category = mCategoryEdit.getText().toString();
 
         mTask.setTitle(title);
         mTask.setContents(content);
+        mTask.setCategory(category);
         GregorianCalendar calendar = new GregorianCalendar(mYear,mMonth,mDay,mHour,mMinute);
         Date date = calendar.getTime();
         mTask.setDate(date);

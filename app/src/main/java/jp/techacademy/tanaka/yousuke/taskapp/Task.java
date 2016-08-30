@@ -1,8 +1,15 @@
 package jp.techacademy.tanaka.yousuke.taskapp;
 
-/**
- * Created by yosuke.tanaka on 2016/08/26.
- */
+//5.3 Realmのモデルクラス
+// モデルとはデータを表現するもので、TaskAapではタスクが相当することになります。
+// Realmのモデルは、RealmObjectクラスを継承したJavaのクラスとして定義します。
+// 対応しているデータ型はboolean、byte、short、int、long、float、double、String、Dateおよびbyte[]です。
+// それではTaskクラスをMainActivityと同じところに新規作成しましょう。
+// タスクのタイトル、内容、日時に該当するtitle、contents、dateを定義します。
+// また、ユニークなIDを指定するidを定義し、@PrimaryKeyと付けます。
+// @PrimaryKeyはRealmがプライマリーキーと判断するために必要なものです。
+// プライマリーキーとは主キーとも呼ばれ、データーベースの一つのテーブルの中でデータを唯一的に確かめるための値です。
+
 import java.io.Serializable;
 import java.util.Date;
 

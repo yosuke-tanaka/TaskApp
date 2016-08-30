@@ -8,35 +8,67 @@ import android.os.Bundle;
 import android.support.design.widget.FloatingActionButton;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
+import android.text.TextUtils;
 import android.view.View;
 import android.widget.AdapterView;
+import android.widget.Button;
+import android.widget.EditText;
 import android.widget.ListView;
 
 import java.util.ArrayList;
 
 import io.realm.Realm;
 import io.realm.RealmChangeListener;
+import io.realm.RealmQuery;
 import io.realm.RealmResults;
 import io.realm.Sort;
 
 public class MainActivity extends AppCompatActivity {
     public final static String EXTRA_TASK = "jp.techacademy.taro.kirameki.taskapp.TASK";
 
+    // Realmクラスを保持
     private Realm mRealm;
+
+    // データベースから取得した結果を保持
     private RealmResults<Task> mTaskRealmResults;
+
+    //Realmのデータベースに追加や削除など変化があった場合に呼ばれるリスナー
     private RealmChangeListener mRealmListener = new RealmChangeListener() {
         @Override
         public void onChange() {
             reloadListView();
         }
     };
+
     private ListView mListView;
     private TaskAdapter mTaskAdapter;
+
+    String mStrCategory;    // カテゴリ情報
+    EditText mEditText;
+
+    //検索Buttonのリスナー
+    View.OnClickListener mSearchClickListener = new View.OnClickListener() {
+        @Override
+        public void onClick(View v) {
+            if (v.getId() == R.id.search_button) {
+                // EditTextから検索文字列取得
+                mStrCategory = mEditText.getText().toString();
+                // ListView更新 (内部で検索結果が反映される)
+                reloadListView();
+            } else {
+                // Error
+            }
+        }
+    };
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+
+        // 検索ボタンのリスナー登録
+        findViewById(R.id.search_button).setOnClickListener(mSearchClickListener);
+        mEditText = (EditText) findViewById(R.id.editText);
 
         FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
         fab.setOnClickListener(new View.OnClickListener() {
@@ -70,7 +102,6 @@ public class MainActivity extends AppCompatActivity {
                 startActivity(intent);
             }
         });
-
 
         //また、セルを長押しした時にタスクを削除する処理も合わせて実装しておきます。
         // 長押しするとLesson4で学んだAlertDialogを表示し、OKを押したら削除、CANCELを押したら何もしないという実装にします。
@@ -132,10 +163,28 @@ public class MainActivity extends AppCompatActivity {
         reloadListView();
     }
 
+    // ListView更新
+    // カテゴリが検索文字列に対応するもののみ表示
     private void reloadListView() {
+        //データベースからデータを再取得
+        if(TextUtils.isEmpty(mStrCategory) == true) {
+            // nullもしくは空文字列の場合は検索なし
+            mTaskRealmResults = mRealm.where(Task.class).findAll();
+        }
+        else
+        {
+            // mStrCategoryが指定されている場合は絞り込み
+            RealmQuery<Task> query = mRealm.where(Task.class);
+            query.equalTo("category", mStrCategory);
+            mTaskRealmResults = query.findAll();
+
+
+            //mTaskRealmResults = mRealm.where(Task.class).equalTo("category", mStrCategory).findAll();
+        }
+        mTaskRealmResults.sort("date", Sort.DESCENDING);
+
 
         ArrayList<Task> taskArrayList = new ArrayList<>();
-
         for (int i = 0; i < mTaskRealmResults.size(); i++) {
             Task task = new Task();
 
