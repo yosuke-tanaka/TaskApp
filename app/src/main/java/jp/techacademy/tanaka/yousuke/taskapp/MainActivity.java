@@ -9,6 +9,7 @@ import android.support.design.widget.FloatingActionButton;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.text.TextUtils;
+import android.util.Log;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.Button;
@@ -57,6 +58,7 @@ public class MainActivity extends AppCompatActivity {
                 reloadListView();
             } else {
                 // Error
+                ErrorCommon("Iregal id at mSearchClickListener");
             }
         }
     };
@@ -174,12 +176,13 @@ public class MainActivity extends AppCompatActivity {
         else
         {
             // mStrCategoryが指定されている場合は絞り込み
-            RealmQuery<Task> query = mRealm.where(Task.class);
-            query.equalTo("category", mStrCategory);
-            mTaskRealmResults = query.findAll();
+            // [方法1]
+            mTaskRealmResults = mRealm.where(Task.class).equalTo("category", mStrCategory).findAll();
 
-
-            //mTaskRealmResults = mRealm.where(Task.class).equalTo("category", mStrCategory).findAll();
+            // [方法2]
+            //RealmQuery<Task> query = mRealm.where(Task.class);
+            //query.equalTo("category", mStrCategory);
+            //mTaskRealmResults = query.findAll();
         }
         mTaskRealmResults.sort("date", Sort.DESCENDING);
 
@@ -192,6 +195,7 @@ public class MainActivity extends AppCompatActivity {
             task.setTitle(mTaskRealmResults.get(i).getTitle());
             task.setContents(mTaskRealmResults.get(i).getContents());
             task.setDate(mTaskRealmResults.get(i).getDate());
+            task.setCategory(mTaskRealmResults.get(i).getCategory());
 
             taskArrayList.add(task);
         }
@@ -206,5 +210,37 @@ public class MainActivity extends AppCompatActivity {
         super.onDestroy();
 
         mRealm.close();
+    }
+
+
+    // エラー共通処理
+    private void ErrorCommon(String msg) {
+        Log.d("**MyError**", msg);
+
+        // エラーダイアログ表示
+        showAlertDialog(msg);
+    }
+
+    // エラーダイアログ表示
+    private void showAlertDialog(String msg) {
+        // AlertDialog.Builderクラスを使ってAlertDialogの準備をする
+        AlertDialog.Builder alertDialogBuilder = new AlertDialog.Builder(this);
+        alertDialogBuilder.setTitle("エラー");
+        alertDialogBuilder.setMessage(msg);
+
+        // OKボタンに表示される文字列、押したときのリスナーを設定する
+        alertDialogBuilder.setPositiveButton("OK",
+                new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        //アクティビティ終了
+                        Log.d("**MyError**", "End Activity");
+                        finish();
+                    }
+                });
+
+        // AlertDialogを作成して表示する
+        AlertDialog alertDialog = alertDialogBuilder.create();
+        alertDialog.show();
     }
 }
