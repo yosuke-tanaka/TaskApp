@@ -71,6 +71,7 @@ public class InputActivity extends AppCompatActivity {
             timePickerDialog.show();
         }
     };
+
     //決定Buttonのリスナー
     //mOnDoneClickListenerではRealmに保存/更新したあと、
     // finishメソッドを呼び出すことでInputActivityを閉じて前の画面（MainActivity）に戻ります。
@@ -79,6 +80,16 @@ public class InputActivity extends AppCompatActivity {
         public void onClick(View v) {
             addTask();
             finish();
+        }
+    };
+
+    //カテゴリ追加Buttonのリスナー
+    private View.OnClickListener mOnAddClickListener = new View.OnClickListener() {
+        @Override
+        public void onClick(View v) {
+            // カテゴリ登録画面に遷移させる
+            Intent intent = new Intent(InputActivity.this, CreateCategoryActivity.class);
+            startActivity(intent);
         }
     };
 
@@ -100,6 +111,7 @@ public class InputActivity extends AppCompatActivity {
         mTimeButton = (Button)findViewById(R.id.times_button);
         mTimeButton.setOnClickListener(mOnTimeClickListener);
         findViewById(R.id.done_button).setOnClickListener(mOnDoneClickListener);
+        findViewById(R.id.add_button).setOnClickListener(mOnAddClickListener);
         mTitleEdit = (EditText)findViewById(R.id.title_edit_text);
         mContentEdit = (EditText)findViewById(R.id.content_edit_text);
         mCategoryEdit = (EditText)findViewById(R.id.category_edit_text);
@@ -126,7 +138,7 @@ public class InputActivity extends AppCompatActivity {
             // 更新の場合
             mTitleEdit.setText(mTask.getTitle());
             mContentEdit.setText(mTask.getContents());
-            mCategoryEdit.setText(mTask.getCategory());
+            mCategoryEdit.setText(mTask.getCategoryStr());
 
             Calendar calendar = Calendar.getInstance();
             calendar.setTime(mTask.getDate());
@@ -217,7 +229,7 @@ public class InputActivity extends AppCompatActivity {
 
         mTask.setTitle(title);
         mTask.setContents(content);
-        mTask.setCategory(category);
+        mTask.setCategoryStr(category);
         GregorianCalendar calendar = new GregorianCalendar(mYear,mMonth,mDay,mHour,mMinute);
         Date date = calendar.getTime();
         mTask.setDate(date);

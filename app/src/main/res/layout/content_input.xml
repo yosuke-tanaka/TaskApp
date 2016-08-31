@@ -24,26 +24,41 @@
         android:layout_height="wrap_content"
         android:layout_below="@id/title_edit_text"
         android:hint="内容" />
-    <EditText
+    <!--EditText
         android:id="@+id/category_edit_text"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_below="@id/content_edit_text"
-        android:hint="カテゴリ" />
+        android:hint="カテゴリ" /-->
+    <Button
+        android:id="@+id/add_button"
+        android:layout_width="120dp"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/content_edit_text"
+        android:layout_alignParentLeft="true"
+        android:text="カテゴリ追加" />
+
+    <!--Spinner android:id="@+id/category_spinner"
+        android:layout_width="fill_parent"
+        android:layout_below="@id/add_button"
+        android:layout_height="wrap_content">
+    </Spinner-->
+
     <Button
         android:id="@+id/date_button"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:layout_below="@id/category_edit_text"
+        android:layout_below="@id/add_button"
         android:layout_alignParentStart="true"
         android:layout_toLeftOf="@+id/times_button"
         android:text="----/--/--"
         style="@style/Widget.AppCompat.Button.Borderless" />
+
     <Button
         android:id="@id/times_button"
         android:layout_width="96dp"
         android:layout_height="wrap_content"
-        android:layout_below="@id/category_edit_text"
+        android:layout_below="@id/add_button"
         android:layout_alignParentRight="true"
         android:text="--:--"
         style="@style/Widget.AppCompat.Button.Borderless" />
@@ -54,5 +69,6 @@
         android:layout_below="@id/times_button"
         android:layout_alignParentRight="true"
         android:text="決定" />
+
 
 </RelativeLayout>
