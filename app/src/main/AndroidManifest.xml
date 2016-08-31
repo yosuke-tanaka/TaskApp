@@ -2,7 +2,7 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     package="jp.techacademy.tanaka.yousuke.taskapp">
 
-    <uses-permission android:name="android.permission.WAKE_LOCK"/>
+    <uses-permission android:name="android.permission.WAKE_LOCK" />
 
     <application
         android:name=".TaskApp"
@@ -28,11 +28,12 @@
             android:theme="@style/AppTheme.NoActionBar">
             <meta-data
                 android:name="android.support.PARENT_ACTIVITY"
-                android:value="jp.techacademy.tanaka.yousuke.taskapp.MainActivity"/>
+                android:value="jp.techacademy.tanaka.yousuke.taskapp.MainActivity" />
         </activity>
 
-        <receiver android:name=".TaskAlarmReceiver"/>
+        <receiver android:name=".TaskAlarmReceiver" />
 
+        <activity android:name=".CreateCategoryActivity"></activity>
     </application>
 
 </manifest>
