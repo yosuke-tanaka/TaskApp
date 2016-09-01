@@ -24,6 +24,7 @@ import java.util.GregorianCalendar;
 
 import io.realm.Realm;
 import io.realm.RealmResults;
+import io.realm.Sort;
 
 public class InputActivity extends AppCompatActivity {
     //タスクの日時を保持するInt型のmYear、mMonth、mDay、mHour、mMinute
@@ -33,6 +34,12 @@ public class InputActivity extends AppCompatActivity {
     private EditText mTitleEdit, mContentEdit, mCategoryEdit;
     // Taskクラスのオブジェクト
     private Task mTask;
+
+    // Realmクラスを保持
+    private Realm mRealm;
+
+    // データベースから取得した結果を保持
+    private RealmResults<Task> mTaskRealmResults;
 
     //日付を設定するButtonのリスナー
     //日付をユーザに入力させる場合はLesson4で学んだDatePickerDialogを使います。mYear、mMonth、mDayを引数に与えて生成し、
@@ -102,6 +109,11 @@ public class InputActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_input);
 
+        // Realmの設定
+        mRealm = Realm.getDefaultInstance();
+        mTaskRealmResults = mRealm.where(Category.class).findAll();
+        mTaskRealmResults.sort("id", Sort.DESCENDING);
+
         // ActionBarを設定する
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
@@ -125,8 +137,19 @@ public class InputActivity extends AppCompatActivity {
         adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
         // アイテムを追加します
         //adapter.add("red");
-        //adapter.add("green");
-        //adapter.add("blue");
+        for (int i = 0; i < mTaskRealmResults.size(); i++) {
+            Category category = new Category();
+
+            category.setId(mTaskRealmResults.get(i).getId());
+            task.setTitle(mTaskRealmResults.get(i).getTitle());
+            task.setContents(mTaskRealmResults.get(i).getContents());
+            task.setDate(mTaskRealmResults.get(i).getDate());
+            category.getCategory(mTaskRealmResults.get(i).getCategory());
+
+            adapter.add();
+        }
+
+
         Spinner spinner = (Spinner) findViewById(R.id.spinner);
         // アダプターを設定します
         spinner.setAdapter(adapter);
