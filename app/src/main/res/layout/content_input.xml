@@ -38,17 +38,17 @@
         android:layout_alignParentLeft="true"
         android:text="カテゴリ追加" />
 
-    <!--Spinner android:id="@+id/category_spinner"
-        android:layout_width="fill_parent"
+    <Spinner
+        android:id="@+id/spinner"
         android:layout_below="@id/add_button"
-        android:layout_height="wrap_content">
-    </Spinner-->
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content" />
 
     <Button
         android:id="@+id/date_button"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:layout_below="@id/add_button"
+        android:layout_below="@id/spinner"
         android:layout_alignParentStart="true"
         android:layout_toLeftOf="@+id/times_button"
         android:text="----/--/--"
@@ -58,7 +58,7 @@
         android:id="@id/times_button"
         android:layout_width="96dp"
         android:layout_height="wrap_content"
-        android:layout_below="@id/add_button"
+        android:layout_below="@id/spinner"
         android:layout_alignParentRight="true"
         android:text="--:--"
         style="@style/Widget.AppCompat.Button.Borderless" />
