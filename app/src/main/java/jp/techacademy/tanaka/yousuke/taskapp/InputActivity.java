@@ -4,8 +4,10 @@ import android.app.AlarmManager;
 import android.app.DatePickerDialog;
 import android.app.PendingIntent;
 import android.app.TimePickerDialog;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.os.Bundle;
+import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.util.Log;
@@ -39,7 +41,10 @@ public class InputActivity extends AppCompatActivity {
     private Realm mRealm;
 
     // データベースから取得した結果を保持
-    private RealmResults<Task> mTaskRealmResults;
+    private RealmResults<Category> mTaskRealmResults;
+
+    // Selected Category
+    Category mSelCategory;
 
     //日付を設定するButtonのリスナー
     //日付をユーザに入力させる場合はLesson4で学んだDatePickerDialogを使います。mYear、mMonth、mDayを引数に与えて生成し、
@@ -89,6 +94,12 @@ public class InputActivity extends AppCompatActivity {
     private View.OnClickListener mOnDoneClickListener = new View.OnClickListener() {
         @Override
         public void onClick(View v) {
+            if(mSelCategory == null)
+            {
+                showAlertDialog("Select category");
+                return;
+            }
+
             addTask();
             finish();
         }
@@ -109,11 +120,6 @@ public class InputActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_input);
 
-        // Realmの設定
-        mRealm = Realm.getDefaultInstance();
-        mTaskRealmResults = mRealm.where(Category.class).findAll();
-        mTaskRealmResults.sort("id", Sort.DESCENDING);
-
         // ActionBarを設定する
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
@@ -132,8 +138,18 @@ public class InputActivity extends AppCompatActivity {
         mContentEdit = (EditText)findViewById(R.id.content_edit_text);
         mCategoryEdit = (EditText)findViewById(R.id.category_edit_text);
 
+
+        // Realmの設定
+        mRealm = Realm.getDefaultInstance();
+        mTaskRealmResults = mRealm.where(Category.class).findAll();
+        mTaskRealmResults.sort("id", Sort.DESCENDING);
+
+        // init
+        mSelCategory = null;
+
         // Spinner関連
-        ArrayAdapter<String> adapter = new ArrayAdapter<String>(this, android.R.layout.simple_spinner_item);
+        //ArrayAdapter<String> adapter = new ArrayAdapter<String>(this, android.R.layout.simple_spinner_item);
+        ArrayAdapter<Category> adapter = new ArrayAdapter<Category>(this, android.R.layout.simple_spinner_item);
         adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
         // アイテムを追加します
         //adapter.add("red");
@@ -141,14 +157,10 @@ public class InputActivity extends AppCompatActivity {
             Category category = new Category();
 
             category.setId(mTaskRealmResults.get(i).getId());
-            task.setTitle(mTaskRealmResults.get(i).getTitle());
-            task.setContents(mTaskRealmResults.get(i).getContents());
-            task.setDate(mTaskRealmResults.get(i).getDate());
-            category.getCategory(mTaskRealmResults.get(i).getCategory());
+            category.setCategory(mTaskRealmResults.get(i).getCategory());
 
-            adapter.add();
+            adapter.add(category);
         }
-
 
         Spinner spinner = (Spinner) findViewById(R.id.spinner);
         // アダプターを設定します
@@ -160,8 +172,10 @@ public class InputActivity extends AppCompatActivity {
                                        int position, long id) {
                 Spinner spinner = (Spinner) parent;
                 // 選択されたアイテムを取得します
-                String item = (String) spinner.getSelectedItem();
-                Log.d("**MyTest**", item);
+                Category item = (Category) spinner.getSelectedItem();
+                Log.d("**MyTest**", item.getCategory());
+
+                mSelCategory = item;
             }
             @Override
             public void onNothingSelected(AdapterView<?> arg0) {
@@ -321,5 +335,26 @@ public class InputActivity extends AppCompatActivity {
         //第二引数でタスクの時間をUTC時間で指定しています。
         AlarmManager alarmManager = (AlarmManager)getSystemService(ALARM_SERVICE);
         alarmManager.set(AlarmManager.RTC_WAKEUP, calendar.getTimeInMillis(), resultPendingIntent);
+    }
+
+    private void showAlertDialog(String msg) {
+        // AlertDialog.Builderクラスを使ってAlertDialogの準備をする
+        AlertDialog.Builder alertDialogBuilder = new AlertDialog.Builder(this);
+        alertDialogBuilder.setTitle("Notice");
+        alertDialogBuilder.setMessage(msg);
+
+        // OKボタンに表示される文字列、押したときのリスナーを設定する
+        alertDialogBuilder.setPositiveButton("OK",
+                new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        //NoOperation
+
+                    }
+                });
+
+        // AlertDialogを作成して表示する
+        AlertDialog alertDialog = alertDialogBuilder.create();
+        alertDialog.show();
     }
 }
