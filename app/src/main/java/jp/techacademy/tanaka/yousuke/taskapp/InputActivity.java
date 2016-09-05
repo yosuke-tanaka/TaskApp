@@ -43,17 +43,17 @@ public class InputActivity extends AppCompatActivity {
     private Realm mRealm;
 
     // データベースから取得した結果を保持
-    private RealmResults<Category> mTaskRealmResults;
+    private RealmResults<Category> mCategoryRealmResults;
 
     // 選択中カテゴリ
     Category mSelCategory;
 
-    // スピナー
+    // カテゴリ用スピナー
     Spinner mSpinner;
 
 
     //Realmのデータベースに追加や削除など変化があった場合に呼ばれるリスナー
-    private RealmChangeListener mRealmListener = new RealmChangeListener() {
+    private RealmChangeListener mCategoryRealmListener = new RealmChangeListener() {
         @Override
         public void onChange() {
             UpdateSpinner();
@@ -157,9 +157,9 @@ public class InputActivity extends AppCompatActivity {
 
         // Realmの設定
         mRealm = Realm.getDefaultInstance();
-        mTaskRealmResults = mRealm.where(Category.class).findAll();
-        mTaskRealmResults.sort("id", Sort.DESCENDING);
-        mRealm.addChangeListener(mRealmListener);
+        mCategoryRealmResults = mRealm.where(Category.class).findAll();
+        mCategoryRealmResults.sort("id", Sort.DESCENDING);
+        mRealm.addChangeListener(mCategoryRealmListener);
 
         // 選択中カテゴリ初期化
         mSelCategory = null;
@@ -352,11 +352,11 @@ public class InputActivity extends AppCompatActivity {
         ArrayAdapter<Category> adapter = new ArrayAdapter<Category>(this, android.R.layout.simple_spinner_item);
         adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
         // アイテムを追加します
-        for (int i = 0; i < mTaskRealmResults.size(); i++) {
+        for (int i = 0; i < mCategoryRealmResults.size(); i++) {
             Category category = new Category();
 
-            category.setId(mTaskRealmResults.get(i).getId());
-            category.setCategory(mTaskRealmResults.get(i).getCategory());
+            category.setId(mCategoryRealmResults.get(i).getId());
+            category.setCategory(mCategoryRealmResults.get(i).getCategory());
 
             adapter.add(category);
         }

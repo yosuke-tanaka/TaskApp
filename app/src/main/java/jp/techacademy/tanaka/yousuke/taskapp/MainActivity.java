@@ -12,9 +12,11 @@ import android.text.TextUtils;
 import android.util.Log;
 import android.view.View;
 import android.widget.AdapterView;
+import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ListView;
+import android.widget.Spinner;
 
 import java.util.ArrayList;
 
@@ -31,13 +33,21 @@ public class MainActivity extends AppCompatActivity {
     private Realm mRealm;
 
     // データベースから取得した結果を保持
-    private RealmResults<Task> mTaskRealmResults;
+    private RealmResults<Task> mTaskRealmResults;   // Task用
+    private RealmResults<Category> mCategoryRealmResults;   // Category用
+
 
     //Realmのデータベースに追加や削除など変化があった場合に呼ばれるリスナー
-    private RealmChangeListener mRealmListener = new RealmChangeListener() {
+    private RealmChangeListener mTaskRealmListener = new RealmChangeListener() {
         @Override
         public void onChange() {
             reloadListView();
+        }
+    };
+    private RealmChangeListener mCategoryRealmListener = new RealmChangeListener() {
+        @Override
+        public void onChange() {
+            UpdateSpinner2();
         }
     };
 
@@ -45,32 +55,35 @@ public class MainActivity extends AppCompatActivity {
     private TaskAdapter mTaskAdapter;
 
     String mStrCategory;    // カテゴリ情報
-    EditText mEditText;
+    //EditText mEditText;
 
-    //検索Buttonのリスナー
-    View.OnClickListener mSearchClickListener = new View.OnClickListener() {
-        @Override
-        public void onClick(View v) {
-            if (v.getId() == R.id.search_button) {
-                // EditTextから検索文字列取得
-                mStrCategory = mEditText.getText().toString();
-                // ListView更新 (内部で検索結果が反映される)
-                reloadListView();
-            } else {
-                // Error
-                ErrorCommon("Iregal id at mSearchClickListener");
-            }
-        }
-    };
+    // カテゴリ用スピナー
+    Spinner mSpinner;
+
+//    //検索Buttonのリスナー
+//    View.OnClickListener mSearchClickListener = new View.OnClickListener() {
+//        @Override
+//        public void onClick(View v) {
+//            if (v.getId() == R.id.search_button) {
+//                // EditTextから検索文字列取得
+//                mStrCategory = mEditText.getText().toString();
+//                // ListView更新 (内部で検索結果が反映される)
+//                reloadListView();
+//            } else {
+//                // Error
+//                ErrorCommon("Iregal id at mSearchClickListener");
+//            }
+//        }
+//    };
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        // 検索ボタンのリスナー登録
-        findViewById(R.id.search_button).setOnClickListener(mSearchClickListener);
-        mEditText = (EditText) findViewById(R.id.editText);
+//        // 検索ボタンのリスナー登録
+//        findViewById(R.id.search_button).setOnClickListener(mSearchClickListener);
+//        mEditText = (EditText) findViewById(R.id.editText);
 
         FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
         fab.setOnClickListener(new View.OnClickListener() {
@@ -85,7 +98,11 @@ public class MainActivity extends AppCompatActivity {
         mRealm = Realm.getDefaultInstance();
         mTaskRealmResults = mRealm.where(Task.class).findAll();
         mTaskRealmResults.sort("date", Sort.DESCENDING);
-        mRealm.addChangeListener(mRealmListener);
+        mRealm.addChangeListener(mTaskRealmListener);
+
+        mCategoryRealmResults = mRealm.where(Category.class).findAll();
+        mCategoryRealmResults.sort("id", Sort.DESCENDING);
+        mRealm.addChangeListener(mCategoryRealmListener);
 
         // ListViewの設定
         mTaskAdapter = new TaskAdapter(MainActivity.this);
@@ -163,6 +180,36 @@ public class MainActivity extends AppCompatActivity {
         });
 
         reloadListView();
+
+        // Spinner関連
+        mSpinner = (Spinner) findViewById(R.id.spinner);
+        // スピナー内容更新
+        UpdateSpinner2();
+        // スピナーのアイテムが選択された時に呼び出されるコールバックリスナーを登録します
+        mSpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+            @Override
+            public void onItemSelected(AdapterView<?> parent, View view,
+                                       int position, long id) {
+                Spinner spinner = (Spinner) parent;
+                // 選択されたアイテムを取得します
+                Category item = (Category) spinner.getSelectedItem();
+                Log.d("**MyTest**", item.getCategory());
+
+                if(item.getId() == -1)
+                {
+                    mStrCategory = null; // 未選択に対応
+                }
+                else
+                {
+                    mStrCategory = item.getCategory();
+                }
+                // カテゴリ検索を行ってListView更新
+                reloadListView();
+            }
+            @Override
+            public void onNothingSelected(AdapterView<?> arg0) {
+            }
+        });
     }
 
     // ListView更新
@@ -206,6 +253,41 @@ public class MainActivity extends AppCompatActivity {
         mTaskAdapter.setTaskArrayList(taskArrayList);
         mListView.setAdapter(mTaskAdapter);
         mTaskAdapter.notifyDataSetChanged();
+    }
+
+    /**
+     * スピナー内容更新
+     * [参考]
+     * http://mitoroid.com/category/android/android_listview1.php
+     * http://mrstar-memo.hatenablog.com/entry/2013/08/17/213549
+     *
+     * [注意] 先頭に「(未選択)」用の項目を追加
+     */
+    private void UpdateSpinner2()
+    {
+        Category category;
+
+        //ArrayAdapter<String> adapter = new ArrayAdapter<String>(this, android.R.layout.simple_spinner_item);
+        ArrayAdapter<Category> adapter = new ArrayAdapter<Category>(this, android.R.layout.simple_spinner_item);
+        adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+        // アイテムを追加します
+        // 先頭に項目「(未選択)」追加
+        category = new Category();
+        category.setId(-1);   // ID=-1が「未選択」を意味するようにする
+        category.setCategory("(未選択)");
+        adapter.add(category);
+
+        for (int i = 0; i < mCategoryRealmResults.size(); i++) {
+            category = new Category();
+
+            category.setId(mCategoryRealmResults.get(i).getId());
+            category.setCategory(mCategoryRealmResults.get(i).getCategory());
+
+            adapter.add(category);
+        }
+
+        // アダプターを設定します
+        mSpinner.setAdapter(adapter);
     }
 
     @Override

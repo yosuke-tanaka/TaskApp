@@ -22,18 +22,24 @@
             android:orientation="horizontal"
             android:id="@+id/TopContents">
 
-            <EditText
+            <!--EditText
                 android:layout_width="250sp"
                 android:layout_height="wrap_content"
                 android:id="@+id/editText"
-                android:hint="カテゴリ"/>
+                android:hint="カテゴリ"/ -->
 
-            <Button
+            <!--Button
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="検索"
                 android:layout_toRightOf="@+id/editText"
-                android:id="@+id/search_button"/>
+                android:id="@+id/search_button"/ -->
+
+            <Spinner
+                android:id="@+id/spinner"
+                android:layout_width="fill_parent"
+                android:layout_height="wrap_content" />
+
         </LinearLayout>
 
         <ListView
