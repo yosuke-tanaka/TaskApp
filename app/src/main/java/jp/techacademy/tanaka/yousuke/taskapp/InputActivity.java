@@ -25,6 +25,7 @@ import java.util.Date;
 import java.util.GregorianCalendar;
 
 import io.realm.Realm;
+import io.realm.RealmChangeListener;
 import io.realm.RealmResults;
 import io.realm.Sort;
 
@@ -33,7 +34,8 @@ public class InputActivity extends AppCompatActivity {
     private int mYear, mMonth, mDay, mHour, mMinute;
     //日付を設定するButtonと時間を設定するButton、タイトルを入力するEditText、内容を入力するEditTextの保持する変数
     private Button mDateButton, mTimeButton;
-    private EditText mTitleEdit, mContentEdit, mCategoryEdit;
+    private EditText mTitleEdit, mContentEdit;
+    //private EditText mCategoryEdit;
     // Taskクラスのオブジェクト
     private Task mTask;
 
@@ -43,8 +45,20 @@ public class InputActivity extends AppCompatActivity {
     // データベースから取得した結果を保持
     private RealmResults<Category> mTaskRealmResults;
 
-    // Selected Category
+    // 選択中カテゴリ
     Category mSelCategory;
+
+    // スピナー
+    Spinner mSpinner;
+
+
+    //Realmのデータベースに追加や削除など変化があった場合に呼ばれるリスナー
+    private RealmChangeListener mRealmListener = new RealmChangeListener() {
+        @Override
+        public void onChange() {
+            UpdateSpinner();
+        }
+    };
 
     //日付を設定するButtonのリスナー
     //日付をユーザに入力させる場合はLesson4で学んだDatePickerDialogを使います。mYear、mMonth、mDayを引数に与えて生成し、
@@ -96,7 +110,7 @@ public class InputActivity extends AppCompatActivity {
         public void onClick(View v) {
             if(mSelCategory == null)
             {
-                showAlertDialog("Select category");
+                showAlertDialog("カテゴリを選択してください");
                 return;
             }
 
@@ -105,7 +119,9 @@ public class InputActivity extends AppCompatActivity {
         }
     };
 
-    //カテゴリ追加Buttonのリスナー
+    /**
+     * カテゴリ追加Buttonのリスナー
+     */
     private View.OnClickListener mOnAddClickListener = new View.OnClickListener() {
         @Override
         public void onClick(View v) {
@@ -136,37 +152,24 @@ public class InputActivity extends AppCompatActivity {
         findViewById(R.id.add_button).setOnClickListener(mOnAddClickListener);
         mTitleEdit = (EditText)findViewById(R.id.title_edit_text);
         mContentEdit = (EditText)findViewById(R.id.content_edit_text);
-        mCategoryEdit = (EditText)findViewById(R.id.category_edit_text);
+        //mCategoryEdit = (EditText)findViewById(R.id.category_edit_text);
 
 
         // Realmの設定
         mRealm = Realm.getDefaultInstance();
         mTaskRealmResults = mRealm.where(Category.class).findAll();
         mTaskRealmResults.sort("id", Sort.DESCENDING);
+        mRealm.addChangeListener(mRealmListener);
 
-        // init
+        // 選択中カテゴリ初期化
         mSelCategory = null;
 
         // Spinner関連
-        //ArrayAdapter<String> adapter = new ArrayAdapter<String>(this, android.R.layout.simple_spinner_item);
-        ArrayAdapter<Category> adapter = new ArrayAdapter<Category>(this, android.R.layout.simple_spinner_item);
-        adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
-        // アイテムを追加します
-        //adapter.add("red");
-        for (int i = 0; i < mTaskRealmResults.size(); i++) {
-            Category category = new Category();
-
-            category.setId(mTaskRealmResults.get(i).getId());
-            category.setCategory(mTaskRealmResults.get(i).getCategory());
-
-            adapter.add(category);
-        }
-
-        Spinner spinner = (Spinner) findViewById(R.id.spinner);
-        // アダプターを設定します
-        spinner.setAdapter(adapter);
+        mSpinner = (Spinner) findViewById(R.id.spinner);
+        // スピナー内容更新
+        UpdateSpinner();
         // スピナーのアイテムが選択された時に呼び出されるコールバックリスナーを登録します
-        spinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+        mSpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
             @Override
             public void onItemSelected(AdapterView<?> parent, View view,
                                        int position, long id) {
@@ -204,7 +207,7 @@ public class InputActivity extends AppCompatActivity {
             // 更新の場合
             mTitleEdit.setText(mTask.getTitle());
             mContentEdit.setText(mTask.getContents());
-            mCategoryEdit.setText(mTask.getCategoryStr());
+            //mCategoryEdit.setText(mTask.getCategoryStr());
 
             Calendar calendar = Calendar.getInstance();
             calendar.setTime(mTask.getDate());
@@ -291,11 +294,11 @@ public class InputActivity extends AppCompatActivity {
 
         String title = mTitleEdit.getText().toString();
         String content = mContentEdit.getText().toString();
-        String category = mCategoryEdit.getText().toString();
+        //String category = mCategoryEdit.getText().toString();
 
         mTask.setTitle(title);
         mTask.setContents(content);
-        mTask.setCategoryStr(category);
+        mTask.setCategoryCrass(mSelCategory);
         GregorianCalendar calendar = new GregorianCalendar(mYear,mMonth,mDay,mHour,mMinute);
         Date date = calendar.getTime();
         mTask.setDate(date);
@@ -337,10 +340,36 @@ public class InputActivity extends AppCompatActivity {
         alarmManager.set(AlarmManager.RTC_WAKEUP, calendar.getTimeInMillis(), resultPendingIntent);
     }
 
+    /**
+     * スピナー内容更新
+     * [参考]
+     * http://mitoroid.com/category/android/android_listview1.php
+     * http://mrstar-memo.hatenablog.com/entry/2013/08/17/213549
+     */
+    private void UpdateSpinner()
+    {
+        //ArrayAdapter<String> adapter = new ArrayAdapter<String>(this, android.R.layout.simple_spinner_item);
+        ArrayAdapter<Category> adapter = new ArrayAdapter<Category>(this, android.R.layout.simple_spinner_item);
+        adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+        // アイテムを追加します
+        for (int i = 0; i < mTaskRealmResults.size(); i++) {
+            Category category = new Category();
+
+            category.setId(mTaskRealmResults.get(i).getId());
+            category.setCategory(mTaskRealmResults.get(i).getCategory());
+
+            adapter.add(category);
+        }
+
+        // アダプターを設定します
+        mSpinner.setAdapter(adapter);
+    }
+
+
     private void showAlertDialog(String msg) {
         // AlertDialog.Builderクラスを使ってAlertDialogの準備をする
         AlertDialog.Builder alertDialogBuilder = new AlertDialog.Builder(this);
-        alertDialogBuilder.setTitle("Notice");
+        alertDialogBuilder.setTitle("注意");
         alertDialogBuilder.setMessage(msg);
 
         // OKボタンに表示される文字列、押したときのリスナーを設定する

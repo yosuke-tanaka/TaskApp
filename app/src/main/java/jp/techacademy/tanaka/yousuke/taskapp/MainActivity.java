@@ -177,7 +177,10 @@ public class MainActivity extends AppCompatActivity {
         {
             // mStrCategoryが指定されている場合は絞り込み
             // [方法1]
-            mTaskRealmResults = mRealm.where(Task.class).equalTo("category", mStrCategory).findAll();
+            //mTaskRealmResults = mRealm.where(Task.class).equalTo("category", mStrCategory).findAll();
+            //Categoryクラスのメンバ変数categoryが文字列mStrCategoryに等しいか
+            mTaskRealmResults = mRealm.where(Task.class).equalTo("category.category", mStrCategory).findAll();
+
 
             // [方法2]
             //RealmQuery<Task> query = mRealm.where(Task.class);

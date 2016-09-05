@@ -31,4 +31,11 @@ public class Category extends RealmObject implements Serializable {
     public void setCategory(String category) {
         this.category = category;
     }
+
+
+    // オブジェクトの文字情報をリスト(Spinner)に表示させるためToStringをOverride
+    @Override
+    public String toString() {
+        return category;
+    }
 }
