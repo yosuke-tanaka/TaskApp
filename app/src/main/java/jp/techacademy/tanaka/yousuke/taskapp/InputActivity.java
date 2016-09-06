@@ -18,6 +18,7 @@ import android.widget.Button;
 import android.widget.DatePicker;
 import android.widget.EditText;
 import android.widget.Spinner;
+import android.widget.SpinnerAdapter;
 import android.widget.TimePicker;
 
 import java.util.Calendar;
@@ -43,6 +44,7 @@ public class InputActivity extends AppCompatActivity {
     private Realm mRealm;
 
     // データベースから取得した結果を保持
+    private RealmResults<Task> mTaskRealmResults;
     private RealmResults<Category> mCategoryRealmResults;
 
     // 選択中カテゴリ
@@ -186,9 +188,12 @@ public class InputActivity extends AppCompatActivity {
         });
 
         Intent intent = getIntent();
-        mTask = (Task) intent.getSerializableExtra(MainActivity.EXTRA_TASK);
+        // 2016.09.06 [修正] Taskクラスでなく、タスクのIDを取得するように変更
+        //mTask = (Task) intent.getSerializableExtra(MainActivity.EXTRA_TASK);
+        // IntentクラスのgetIntExtraメソッドでキー名と値が存在しなかったときのデフォルト値を指定
+        int taskId = intent.getIntExtra(MainActivity.EXTRA_TASK, -1);
 
-        if (mTask == null) {
+        if (taskId == -1) {
             //新規作成の場合は遷移元であるMainActivityからTaskは渡されないのでnullになります。
             // nullであれば現在時刻からmYear、mMonth、mDay、mHour、mMinutに値を設定します。
 
@@ -205,6 +210,16 @@ public class InputActivity extends AppCompatActivity {
             // mDateButtonに日付、mTimeButtonに時間をそれぞれ文字列に変換して設定します。
 
             // 更新の場合
+
+            // IDからタスクを検索
+            mTaskRealmResults = mRealm.where(Task.class).equalTo("id", taskId).findAll();
+            mTask = new Task();
+            mTask.setId(mTaskRealmResults.get(0).getId());
+            mTask.setTitle(mTaskRealmResults.get(0).getTitle());
+            mTask.setContents(mTaskRealmResults.get(0).getContents());
+            mTask.setDate(mTaskRealmResults.get(0).getDate());
+            mTask.setCategoryCrass(mTaskRealmResults.get(0).getCategoryCrass());
+
             mTitleEdit.setText(mTask.getTitle());
             mContentEdit.setText(mTask.getContents());
             //mCategoryEdit.setText(mTask.getCategoryStr());
@@ -221,7 +236,30 @@ public class InputActivity extends AppCompatActivity {
             String timeString = String.format("%02d", mHour) + ":" + String.format("%02d", mMinute);
             mDateButton.setText(dateString);
             mTimeButton.setText(timeString);
+
+            // カテゴリ用スピナーで対応する項目を選択
+            mSelCategory = mTask.getCategoryCrass();
+            setSelection(mSpinner, mSelCategory.getCategory());
         }
+    }
+
+    /**
+     * Spinnerの項目を文字列で選択
+     * [参考]http://anadreline.blogspot.jp/2013/07/spinner.html
+     * @param spinner
+     * @param item
+     */
+    public static void setSelection(Spinner spinner, String item) {
+        SpinnerAdapter adapter = spinner.getAdapter();
+        int index = 0;
+        for (int i = 0; i < adapter.getCount(); i++) {
+            Category cate = (Category)adapter.getItem(i);
+            String str = cate.getCategory();
+            if (str.equals(item)) {
+                index = i; break;
+            }
+        }
+        spinner.setSelection(index);
     }
 
 //    private void addTask() {
